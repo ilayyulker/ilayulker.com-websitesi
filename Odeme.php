@@ -223,7 +223,7 @@ class Odeme extends CI_Controller
 	public function sonuc($tip, $siparis_no)
 	{
 	    unset($_SESSION["sepet"]);
-	    
+
 		$veri = [
 			'sayfa_adi' => '/odeme/odeme-sonuc',
 			'siteayar' => siteayar()
@@ -234,15 +234,47 @@ class Odeme extends CI_Controller
 		if ($siparis->num_rows() == 0) {
 			redirect(base_url());
 		}
-		
-		  
+
+		$siparis_data = $siparis->row();
 
 		if ($tip == "success") {
-			$veri["siparis_key"] = $siparis->row()->sipariskey;
+			$veri["siparis_key"] = $siparis_data->sipariskey;
 			$veri["tip"] = $tip;
 			$veri["sayfa_title"] = 'Ödeme Başarılı - ' . siteayar()->site_baslik;
+
+			// PURCHASE EVENT TRACKING İÇİN VERİ HAZIRLAMA
+			$sepet_items = json_decode($siparis_data->sepet);
+			$tracking_items = array();
+
+			if ($sepet_items) {
+				foreach ($sepet_items as $item) {
+					$tracking_items[] = array(
+						'id' => isset($item->urun_id) ? $item->urun_id : '',
+						'name' => isset($item->urun_ad) ? $item->urun_ad : '',
+						'price' => isset($item->urun_fiyat) ? floatval($item->urun_fiyat) : 0,
+						'quantity' => isset($item->adet) ? intval($item->adet) : 1,
+						'category' => isset($item->kategori) ? $item->kategori : ''
+					);
+				}
+			}
+
+			// Kupon bilgisi varsa ekle
+			$kupon_bilgi = json_decode($siparis_data->kupon_bilgi);
+			$kupon_kodu = '';
+			if (isset($kupon_bilgi->kupon_kodu) && $kupon_bilgi->kupon_kodu != "0") {
+				$kupon_kodu = $kupon_bilgi->kupon_kodu;
+			}
+
+			$veri["tracking_data"] = array(
+				'order_id' => $siparis_data->sipariskey,
+				'total' => floatval($siparis_data->tutar),
+				'tax' => 0, // Vergi bilgisi varsa buraya ekleyin
+				'shipping' => 0, // Kargo bilgisi varsa buraya ekleyin
+				'coupon' => $kupon_kodu,
+				'items' => $tracking_items
+			);
 		} else {
-			$veri["siparis_key"] = $siparis->row()->sipariskey;
+			$veri["siparis_key"] = $siparis_data->sipariskey;
 			$veri["tip"] = $tip;
 			$veri["sayfa_title"] = 'Ödeme Başarısız - ' . siteayar()->site_baslik;
 		}

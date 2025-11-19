@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Event Tracking Test Sayfası</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+
+        .header h1 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            color: #666;
+        }
+
+        .test-section {
+            background: white;
+            padding: 25px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .test-section h2 {
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 20px;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 10px;
+        }
+
+        .test-button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            margin: 5px;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .test-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .test-button:active {
+            transform: translateY(0);
+        }
+
+        .test-button.success {
+            background: linear-gradient(135deg, #34a853 0%, #0f9d58 100%);
+        }
+
+        .test-button.warning {
+            background: linear-gradient(135deg, #fbbc04 0%, #ea8600 100%);
+        }
+
+        .test-button.danger {
+            background: linear-gradient(135deg, #ea4335 0%, #d33b2c 100%);
+        }
+
+        .console-output {
+            background: #1e1e1e;
+            color: #d4d4d4;
+            padding: 20px;
+            border-radius: 5px;
+            margin-top: 15px;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .console-output .log {
+            padding: 5px 0;
+            border-bottom: 1px solid #333;
+        }
+
+        .console-output .log.success {
+            color: #4ec9b0;
+        }
+
+        .console-output .log.error {
+            color: #f48771;
+        }
+
+        .console-output .log.info {
+            color: #9cdcfe;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 5px 10px;
+            border-radius: 3px;
+            font-size: 12px;
+            font-weight: bold;
+            margin-left: 10px;
+        }
+
+        .status-badge.loaded {
+            background: #34a853;
+            color: white;
+        }
+
+        .status-badge.error {
+            background: #ea4335;
+            color: white;
+        }
+
+        .status-badge.waiting {
+            background: #fbbc04;
+            color: white;
+        }
+
+        .input-group {
+            margin: 15px 0;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 5px;
+            color: #333;
+            font-weight: 500;
+        }
+
+        .input-group input,
+        .input-group select {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #e0e0e0;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+
+        .input-group input:focus,
+        .input-group select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .clear-console {
+            float: right;
+            background: #444;
+            padding: 5px 15px;
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 12px;
+            margin-bottom: 10px;
+        }
+
+        .clear-console:hover {
+            background: #555;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <h1>🎯 Event Tracking Test Sayfası</h1>
+            <p>Google Analytics 4 ve Facebook Pixel event'lerini test edin</p>
+            <div style="margin-top: 15px;">
+                <strong>GA4 Durum:</strong>
+                <span id="ga4-status" class="status-badge waiting">Kontrol ediliyor...</span>
+
+                <strong>Facebook Pixel Durum:</strong>
+                <span id="fb-status" class="status-badge waiting">Kontrol ediliyor...</span>
+
+                <strong>Tracking Library Durum:</strong>
+                <span id="lib-status" class="status-badge waiting">Kontrol ediliyor...</span>
+            </div>
+        </div>
+
+        <!-- Page View Test -->
+        <div class="test-section">
+            <h2>📄 Page View Event</h2>
+            <button class="test-button" onclick="testPageView()">Page View Test Et</button>
+            <button class="test-button success" onclick="testPageView('/test-page', 'Test Sayfası')">Custom Page View</button>
+        </div>
+
+        <!-- View Item Test -->
+        <div class="test-section">
+            <h2>👁️ View Item Event (Ürün Görüntüleme)</h2>
+            <div class="grid">
+                <div class="input-group">
+                    <label>Ürün ID:</label>
+                    <input type="text" id="view-product-id" value="12345" placeholder="Ürün ID">
+                </div>
+                <div class="input-group">
+                    <label>Ürün Adı:</label>
+                    <input type="text" id="view-product-name" value="Test Ürün" placeholder="Ürün adı">
+                </div>
+                <div class="input-group">
+                    <label>Fiyat (TRY):</label>
+                    <input type="number" id="view-product-price" value="99.90" placeholder="99.90">
+                </div>
+                <div class="input-group">
+                    <label>Kategori:</label>
+                    <input type="text" id="view-product-category" value="Elektronik" placeholder="Kategori">
+                </div>
+            </div>
+            <button class="test-button" onclick="testViewItem()">View Item Test Et</button>
+        </div>
+
+        <!-- Add to Cart Test -->
+        <div class="test-section">
+            <h2>🛒 Add to Cart Event (Sepete Ekleme)</h2>
+            <div class="grid">
+                <div class="input-group">
+                    <label>Ürün ID:</label>
+                    <input type="text" id="cart-product-id" value="12345" placeholder="Ürün ID">
+                </div>
+                <div class="input-group">
+                    <label>Ürün Adı:</label>
+                    <input type="text" id="cart-product-name" value="Test Ürün" placeholder="Ürün adı">
+                </div>
+                <div class="input-group">
+                    <label>Fiyat (TRY):</label>
+                    <input type="number" id="cart-product-price" value="99.90" placeholder="99.90">
+                </div>
+                <div class="input-group">
+                    <label>Adet:</label>
+                    <input type="number" id="cart-product-quantity" value="1" placeholder="1">
+                </div>
+            </div>
+            <button class="test-button" onclick="testAddToCart()">Add to Cart Test Et</button>
+            <button class="test-button danger" onclick="testRemoveFromCart()">Remove from Cart Test Et</button>
+        </div>
+
+        <!-- Checkout Tests -->
+        <div class="test-section">
+            <h2>💳 Checkout Events</h2>
+            <button class="test-button" onclick="testBeginCheckout()">Begin Checkout Test Et</button>
+            <button class="test-button" onclick="testAddPaymentInfo()">Add Payment Info Test Et</button>
+            <button class="test-button success" onclick="testPurchase()">🎉 Purchase Test Et (ÖNEMLİ!)</button>
+        </div>
+
+        <!-- Other Events -->
+        <div class="test-section">
+            <h2>🔍 Diğer Events</h2>
+            <div class="input-group">
+                <label>Arama Terimi:</label>
+                <input type="text" id="search-term" value="laptop" placeholder="Arama kelimesi">
+            </div>
+            <button class="test-button" onclick="testSearch()">Search Event Test Et</button>
+            <button class="test-button" onclick="testViewItemList()">View Item List Test Et</button>
+        </div>
+
+        <!-- Console Output -->
+        <div class="test-section">
+            <h2>📋 Console Output</h2>
+            <button class="clear-console" onclick="clearConsoleOutput()">Temizle</button>
+            <div class="console-output" id="console-output">
+                <div class="log info">Console hazır. Test butonlarına tıklayın...</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+    <!-- Tracking Scripts -->
+    <script>
+        // Mock base_url for testing
+        function base_url(path) {
+            return '/' + path;
+        }
+    </script>
+
+    <!-- Include tracking-init.php içeriğini buraya manuel ekleyin veya PHP ile serve edin -->
+    <script>
+        // GA4 Mock (gerçek ID'nizi tracking-init.php'den alın)
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', 'G-XXXXXXXXXX', {'send_page_view': false});
+
+        // FB Pixel Mock (gerçek ID'nizi tracking-init.php'den alın)
+        window.fbq = window.fbq || function() {
+            console.log('[FB Pixel Mock]', arguments);
+        };
+    </script>
+
+    <script src="ecommerce-tracking.js"></script>
+    <script src="cart-tracking-helper.js"></script>
+
+    <script>
+        // Console Output Helper
+        function addConsoleLog(message, type = 'info') {
+            const output = document.getElementById('console-output');
+            const log = document.createElement('div');
+            log.className = 'log ' + type;
+            log.textContent = new Date().toLocaleTimeString() + ' - ' + message;
+            output.appendChild(log);
+            output.scrollTop = output.scrollHeight;
+        }
+
+        function clearConsoleOutput() {
+            document.getElementById('console-output').innerHTML = '<div class="log info">Console temizlendi.</div>';
+        }
+
+        // Status Check
+        window.addEventListener('load', function() {
+            setTimeout(function() {
+                // GA4 Check
+                const ga4Status = document.getElementById('ga4-status');
+                if (typeof gtag === 'function') {
+                    ga4Status.textContent = 'Yüklendi ✓';
+                    ga4Status.className = 'status-badge loaded';
+                    addConsoleLog('GA4 başarıyla yüklendi', 'success');
+                } else {
+                    ga4Status.textContent = 'Yüklenemedi ✗';
+                    ga4Status.className = 'status-badge error';
+                    addConsoleLog('GA4 yüklenemedi!', 'error');
+                }
+
+                // FB Pixel Check
+                const fbStatus = document.getElementById('fb-status');
+                if (typeof fbq === 'function') {
+                    fbStatus.textContent = 'Yüklendi ✓';
+                    fbStatus.className = 'status-badge loaded';
+                    addConsoleLog('Facebook Pixel başarıyla yüklendi', 'success');
+                } else {
+                    fbStatus.textContent = 'Yüklenemedi ✗';
+                    fbStatus.className = 'status-badge error';
+                    addConsoleLog('Facebook Pixel yüklenemedi!', 'error');
+                }
+
+                // Tracking Library Check
+                const libStatus = document.getElementById('lib-status');
+                if (typeof EcommerceTracking !== 'undefined') {
+                    libStatus.textContent = 'Yüklendi ✓';
+                    libStatus.className = 'status-badge loaded';
+                    addConsoleLog('EcommerceTracking kütüphanesi başarıyla yüklendi', 'success');
+                } else {
+                    libStatus.textContent = 'Yüklenemedi ✗';
+                    libStatus.className = 'status-badge error';
+                    addConsoleLog('EcommerceTracking kütüphanesi yüklenemedi!', 'error');
+                }
+            }, 1000);
+        });
+
+        // Test Functions
+        function testPageView() {
+            addConsoleLog('Page View event gönderiliyor...', 'info');
+            EcommerceTracking.trackPageView();
+            addConsoleLog('✓ Page View event gönderildi', 'success');
+        }
+
+        function testViewItem() {
+            const product = {
+                id: document.getElementById('view-product-id').value,
+                name: document.getElementById('view-product-name').value,
+                price: parseFloat(document.getElementById('view-product-price').value),
+                category: document.getElementById('view-product-category').value
+            };
+
+            addConsoleLog('View Item event gönderiliyor: ' + product.name, 'info');
+            EcommerceTracking.trackViewItem(product);
+            addConsoleLog('✓ View Item event gönderildi', 'success');
+        }
+
+        function testAddToCart() {
+            const product = {
+                id: document.getElementById('cart-product-id').value,
+                name: document.getElementById('cart-product-name').value,
+                price: parseFloat(document.getElementById('cart-product-price').value),
+                category: 'Elektronik'
+            };
+            const quantity = parseInt(document.getElementById('cart-product-quantity').value);
+
+            addConsoleLog('Add to Cart event gönderiliyor: ' + product.name + ' (x' + quantity + ')', 'info');
+            EcommerceTracking.trackAddToCart(product, quantity);
+            addConsoleLog('✓ Add to Cart event gönderildi', 'success');
+        }
+
+        function testRemoveFromCart() {
+            const product = {
+                id: document.getElementById('cart-product-id').value,
+                name: document.getElementById('cart-product-name').value,
+                price: parseFloat(document.getElementById('cart-product-price').value),
+                category: 'Elektronik'
+            };
+            const quantity = parseInt(document.getElementById('cart-product-quantity').value);
+
+            addConsoleLog('Remove from Cart event gönderiliyor: ' + product.name, 'info');
+            EcommerceTracking.trackRemoveFromCart(product, quantity);
+            addConsoleLog('✓ Remove from Cart event gönderildi', 'success');
+        }
+
+        function testBeginCheckout() {
+            const items = [
+                {id: '12345', name: 'Test Ürün 1', price: 99.90, quantity: 1, category: 'Elektronik'},
+                {id: '67890', name: 'Test Ürün 2', price: 149.90, quantity: 2, category: 'Aksesuar'}
+            ];
+            const totalValue = 399.70;
+
+            addConsoleLog('Begin Checkout event gönderiliyor (Toplam: ' + totalValue + ' TL)', 'info');
+            EcommerceTracking.trackBeginCheckout(items, totalValue, 'TESTCOUPON');
+            addConsoleLog('✓ Begin Checkout event gönderildi', 'success');
+        }
+
+        function testAddPaymentInfo() {
+            const items = [
+                {id: '12345', name: 'Test Ürün 1', price: 99.90, quantity: 1},
+                {id: '67890', name: 'Test Ürün 2', price: 149.90, quantity: 2}
+            ];
+            const totalValue = 399.70;
+
+            addConsoleLog('Add Payment Info event gönderiliyor (Kredi Kartı)', 'info');
+            EcommerceTracking.trackAddPaymentInfo(items, totalValue, 'kredi_karti');
+            addConsoleLog('✓ Add Payment Info event gönderildi', 'success');
+        }
+
+        function testPurchase() {
+            const orderData = {
+                transaction_id: 'TEST-' + Date.now(),
+                value: 399.70,
+                tax: 71.95,
+                shipping: 0,
+                coupon: 'TESTCOUPON',
+                items: [
+                    {id: '12345', name: 'Test Ürün 1', price: 99.90, quantity: 1, category: 'Elektronik'},
+                    {id: '67890', name: 'Test Ürün 2', price: 149.90, quantity: 2, category: 'Aksesuar'}
+                ]
+            };
+
+            addConsoleLog('🎉 PURCHASE event gönderiliyor! (Sipariş: ' + orderData.transaction_id + ')', 'info');
+            EcommerceTracking.trackPurchase(orderData);
+            addConsoleLog('✓✓✓ PURCHASE event gönderildi! ✓✓✓', 'success');
+            addConsoleLog('Bu en önemli event! Google Analytics ve Facebook\'ta görünmelidir.', 'success');
+        }
+
+        function testSearch() {
+            const searchTerm = document.getElementById('search-term').value;
+            addConsoleLog('Search event gönderiliyor: "' + searchTerm + '"', 'info');
+            EcommerceTracking.trackSearch(searchTerm, 15);
+            addConsoleLog('✓ Search event gönderildi (15 sonuç)', 'success');
+        }
+
+        function testViewItemList() {
+            const items = [
+                {id: '12345', name: 'Laptop', price: 15000, category: 'Elektronik'},
+                {id: '67890', name: 'Mouse', price: 150, category: 'Aksesuar'},
+                {id: '11111', name: 'Klavye', price: 500, category: 'Aksesuar'}
+            ];
+
+            addConsoleLog('View Item List event gönderiliyor (Elektronik kategorisi)', 'info');
+            EcommerceTracking.trackViewItemList(items, 'Elektronik');
+            addConsoleLog('✓ View Item List event gönderildi', 'success');
+        }
+    </script>
+</body>
+</html>
